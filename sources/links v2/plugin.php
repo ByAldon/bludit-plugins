@@ -5,8 +5,8 @@ class pluginLinks extends Plugin
 	public function init()
 	{
 		$jsondb = json_encode(array(
-			'Bludit' => 'https://www.bludit.com',
-			'Bludit PRO' => 'https://pro.bludit.com'
+			'ByAldon' => 'https://github.com/ByAldon'
+
 		));
 
 		$this->dbFields = array(
