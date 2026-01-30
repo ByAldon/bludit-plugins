@@ -1,0 +1,13 @@
+{
+    "plugin-data": {
+        "name": "Back To Top",
+        "description": "A customizable button to smoothly scroll back to the top of the page."
+    },
+    "background-color": "Background Color",
+    "arrow-color": "Arrow Color",
+    "position": "Position",
+    "margin": "Margin (px)",
+    "enable-fade": "Enable Fade-in animation",
+    "right": "Right",
+    "left": "Left"
+}
