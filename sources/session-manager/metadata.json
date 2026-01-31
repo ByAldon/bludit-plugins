@@ -1,0 +1,11 @@
+{
+    "name": "Session Manager",
+    "description": "Adjust the login session duration or enforce session termination.",
+    "author": "ByAldon",
+    "version": "1.0",
+    "releaseDate": "2026-02-01",
+    "license": "MIT",
+    "compatible": "3.13.1",
+    "priority": 1,
+    "website": "https://github.com/ByAldon"
+}
