@@ -3,7 +3,7 @@
 Transforms URL shortcodes into link cards.
 
 ---
-This was a personal project, But you are welcome to use it whenever you want.
+This was a personal project. But you are welcome to use it whenever you want.
 
 ---
 
