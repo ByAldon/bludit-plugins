@@ -1,6 +1,6 @@
 {
 	"author": "ByAldon",
-	"pluginName": "Site Snippet",
+	"pluginName": "BySnippet",
 	"description": "Transforms URL shortcodes into link cards.",
 	"version": "1.0",
 	"releaseDate": "2024-05-22",
