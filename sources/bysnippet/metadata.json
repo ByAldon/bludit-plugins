@@ -1,0 +1,10 @@
+{
+	"author": "ByAldon",
+	"pluginName": "Site Snippet",
+	"description": "Transforms URL shortcodes into link cards.",
+	"version": "1.0",
+	"releaseDate": "2024-05-22",
+	"license": "MIT",
+	"compatible": "3.16.2",
+	"url": "https://github.com/ByAldon/bludit-plugins"
+}
