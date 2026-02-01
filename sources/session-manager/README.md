@@ -4,6 +4,9 @@ Adjust the login session duration or enforce session termination.
 
 ===================================================
 
+<img width="1353" height="649" alt="Session Manager " src="https://github.com/user-attachments/assets/6b22897d-0800-41fb-a64d-403d4daf898a" />
+<img width="1291" height="653" alt="Session Manager 2" src="https://github.com/user-attachments/assets/3db67c5f-aea6-4856-beed-b0325b64cb14" />
+
 This is still a early acces plugin.<br>
 This means that this plugin still may contain bugs.<br>
 Please use [issues](https://github.com/ByAldon/bludit-plugins/issues) to let me know about any bugs
