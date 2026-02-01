@@ -27,7 +27,7 @@ class pluginBySnippet extends Plugin {
 	public function name() { return 'BySnippet'; }
 
 	public function description() {
-		return 'Beautiful link-cards with permanent storage, auto-metadata, drag-and-drop and editing support.';
+		return 'Beautiful link-cards with permanent storage, auto-metadata, category management and editing support.';
 	}
 
 	private function fetchMeta($url) {
@@ -56,18 +56,19 @@ class pluginBySnippet extends Plugin {
 	{
 		$snippets = $this->getSnippets();
 
-		// Nieuwe toevoegen
-		if (!empty($_POST['genUrl']) && !isset($_POST['edit_id'])) {
+		// Add New
+		if (!empty($_POST['genUrl']) && !isset($_POST['update_snippet'])) {
 			$meta = $this->fetchMeta($_POST['genUrl']);
+			$cat = !empty($_POST['genCatNew']) ? $_POST['genCatNew'] : $_POST['genCatSel'];
 			$snippets[] = array(
 				'url'      => $_POST['genUrl'],
 				'title'    => $meta['title'],
 				'desc'     => $meta['desc'],
-				'category' => !empty($_POST['genCat']) ? ucfirst(strtolower($_POST['genCat'])) : 'General'
+				'category' => ucfirst(strtolower($cat))
 			);
 		}
 
-		// Update bestaande
+		// Update Snippet
 		if (isset($_POST['update_snippet'])) {
 			$id = $_POST['edit_id'];
 			$snippets[$id]['title'] = $_POST['editTitle'];
@@ -75,13 +76,31 @@ class pluginBySnippet extends Plugin {
 			$snippets[$id]['url'] = $_POST['editUrl'];
 		}
 
-		// Verplaatsen (Drag & Drop)
+		// Rename Category
+		if (isset($_POST['rename_cat'])) {
+			$old = $_POST['old_cat_name'];
+			$new = ucfirst(strtolower($_POST['new_cat_name']));
+			foreach ($snippets as $key => $val) {
+				if ($val['category'] === $old) { $snippets[$key]['category'] = $new; }
+			}
+		}
+
+		// Delete Category
+		if (isset($_POST['delete_cat'])) {
+			$catToDelete = $_POST['cat_to_delete'];
+			$snippets = array_filter($snippets, function($item) use ($catToDelete) {
+				return $item['category'] !== $catToDelete;
+			});
+			$snippets = array_values($snippets);
+		}
+
+		// Drag & Drop Move
 		if (isset($_POST['move_id']) && isset($_POST['new_cat'])) {
 			$id = $_POST['move_id'];
 			$snippets[$id]['category'] = $_POST['new_cat'];
 		}
 
-		// Verwijderen
+		// Delete Single
 		if (isset($_POST['delete_snippet'])) {
 			unset($snippets[$_POST['delete_snippet']]);
 			$snippets = array_values($snippets);
@@ -99,20 +118,25 @@ class pluginBySnippet extends Plugin {
 	{
 		$snippets = $this->getSnippets();
 		$categories = array_unique(array_column($snippets, 'category'));
+		sort($categories);
 		if (empty($categories)) { $categories = ['General']; }
 
-		$html = '<div class="alert alert-info">Manage your snippets. Use <b>Edit</b> to manually change titles or descriptions.</div>';
-		
-		// Toevoeg sectie
-		$html .= '<div id="add-section" class="mb-4 p-3 border rounded bg-light">
+		// 1. Add Section
+		$html = '<div class="mb-4 p-3 border rounded bg-light">
 					<h5>Add New Snippet</h5>
 					<div class="row">
-						<div class="col-md-6"><label>URL</label><input name="genUrl" type="text" class="form-control" placeholder="https://..."></div>
-						<div class="col-md-6"><label>Category</label><input name="genCat" type="text" class="form-control" placeholder="e.g. Tools"></div>
+						<div class="col-md-4"><label>URL</label><input name="genUrl" type="text" class="form-control" placeholder="https://..."></div>
+						<div class="col-md-4">
+							<label>Select Category</label>
+							<select name="genCatSel" class="form-control">';
+							foreach ($categories as $cat) { $html .= '<option value="'.$cat.'">'.$cat.'</option>'; }
+		$html .= '			</select>
+						</div>
+						<div class="col-md-4"><label>OR New Category</label><input name="genCatNew" type="text" class="form-control" placeholder="New name..."></div>
 					</div>
 				  </div>';
 
-		// Tabs
+		// 2. Tabs Navigation
 		$html .= '<nav><div class="nav nav-tabs" id="nav-tab" role="tablist">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'active' : '';
@@ -120,42 +144,64 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div></nav>';
 
-		$html .= '<div class="tab-content p-3 border border-top-0" id="nav-tabContent">';
+		// 3. Tabs Content
+		$html .= '<div class="tab-content p-3 border border-top-0 bg-white" id="nav-tabContent">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'show active' : '';
 			$html .= '<div class="tab-pane fade '.$active.'" id="content-'.$index.'" role="tabpanel">';
-			$html .= '<table class="table table-hover align-middle"><thead><tr><th>Drag</th><th>Preview</th><th>Shortcode</th><th class="text-right">Action</th></tr></thead><tbody>';
+			$html .= '<table class="table table-hover align-middle"><tbody>';
 			foreach ($snippets as $id => $item) {
 				if ($item['category'] === $cat) {
-					$code = '[snippet url="'.$item['url'].'"]';
-					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'" id="row-'.$id.'">';
-					$html .= '<td style="cursor:grab; vertical-align:middle;">☰</td>';
-					$html .= '<td class="js-content-view">
-								<strong class="js-title">'.htmlspecialchars($item['title']).'</strong><br>
-								<small class="text-muted js-url">'.$item['url'].'</small><br>
-								<small class="js-desc">'.htmlspecialchars($item['desc']).'</small>
-							  </td>';
-					$html .= '<td class="js-content-edit d-none">
-								<input type="text" name="editTitle" class="form-control form-control-sm mb-1" value="'.htmlspecialchars($item['title']).'">
-								<input type="text" name="editUrl" class="form-control form-control-sm mb-1" value="'.htmlspecialchars($item['url']).'">
-								<textarea name="editDesc" class="form-control form-control-sm">'.htmlspecialchars($item['desc']).'</textarea>
-								<input type="hidden" name="edit_id" value="'.$id.'">
-								<button type="submit" name="update_snippet" class="btn btn-success btn-sm mt-1">Update</button>
-								<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="cancelEdit('.$id.')">Cancel</button>
-							  </td>';
-					$html .= '<td style="vertical-align:middle;">
-								<code>'.htmlspecialchars($code).'</code>
-							  </td>';
-					$html .= '<td class="text-right" style="vertical-align:middle;">
-								<button type="button" class="btn btn-primary btn-sm" onclick="enableEdit('.$id.')">Edit</button>
-								<button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button>
-							  </td>';
-					$html .= '</tr>';
+					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'" id="row-'.$id.'">
+								<td style="cursor:grab; width:30px;">☰</td>
+								<td class="js-content-view">
+									<strong>'.htmlspecialchars($item['title']).'</strong><br><small class="text-muted">'.$item['url'].'</small>
+								</td>
+								<td class="js-content-edit d-none">
+									<input type="text" name="editTitle" class="form-control mb-1" value="".htmlspecialchars($item["title"])."">
+									<input type="text" name="editUrl" class="form-control mb-1" value="'.$item["url"].'">
+									<textarea name="editDesc" class="form-control">'.htmlspecialchars($item["desc"]).'</textarea>
+									<input type="hidden" name="edit_id" value="'.$id.'">
+									<button type="submit" name="update_snippet" class="btn btn-success btn-sm mt-1">Update</button>
+									<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="cancelEdit('.$id.')">Cancel</button>
+								</td>
+								<td style="width:200px;"><code>[snippet url="'.$item['url'].'"]</code></td>
+								<td class="text-right">
+									<button type="button" class="btn btn-primary btn-sm" onclick="enableEdit('.$id.')">Edit</button>
+									<button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button>
+								</td>
+							</tr>';
 				}
 			}
 			$html .= '</tbody></table></div>';
 		}
 		$html .= '</div>';
+
+		// 4. Category Management
+		$html .= '<div class="mt-4 p-3 border rounded">
+					<h5>Manage Categories</h5>
+					<div class="row mt-2">
+						<div class="col-md-6 border-right">
+							<label>Rename Category</label>
+							<div class="input-group">
+								<select name="old_cat_name" class="form-control">';
+								foreach($categories as $cat) { $html .= '<option value="'.$cat.'">'.$cat.'</option>'; }
+		$html .= '				</select>
+								<input type="text" name="new_cat_name" class="form-control" placeholder="New name">
+								<div class="input-group-append"><button type="submit" name="rename_cat" class="btn btn-warning">Rename</button></div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<label>Delete Entire Category</label>
+							<div class="input-group">
+								<select name="cat_to_delete" class="form-control">';
+								foreach($categories as $cat) { $html .= '<option value="'.$cat.'">'.$cat.'</option>'; }
+		$html .= '				</select>
+								<div class="input-group-append"><button type="submit" name="delete_cat" class="btn btn-danger" onclick="return confirm(\'Delete category AND all snippets inside?\')">Delete</button></div>
+							</div>
+						</div>
+					</div>
+				  </div>';
 
 		$html .= '<script>
 		function enableEdit(id) {
@@ -167,13 +213,6 @@ class pluginBySnippet extends Plugin {
 			const row = document.getElementById("row-"+id);
 			row.querySelector(".js-content-view").classList.remove("d-none");
 			row.querySelector(".js-content-edit").classList.add("d-none");
-		}
-		function copySnippet(id, btn) {
-			var copyText = document.getElementById(id);
-			copyText.select();
-			document.execCommand("copy");
-			btn.innerHTML = "Copied!";
-			setTimeout(function(){ btn.innerHTML = "Copy"; }, 2000);
 		}
 		document.querySelectorAll(".js-draggable").forEach(row => {
 			row.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", row.dataset.id); });

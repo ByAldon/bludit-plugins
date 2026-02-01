@@ -2,7 +2,7 @@
 	"author": "ByAldon",
 	"pluginName": "BySnippet",
 	"description": "Transforms URL shortcodes into link cards.",
-	"version": "1.1.5",
+	"version": "1.1.6",
 	"releaseDate": "2024-05-22",
 	"license": "MIT",
 	"compatible": "3.16.2",
