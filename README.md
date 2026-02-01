@@ -1,4 +1,4 @@
-# Bludit Plugins
+![bluditpluginslogo](https://github.com/user-attachments/assets/17739a36-558e-4bef-9c4b-48cc643a6af6)
 
 This is the mainpage for the bludit plugins i made.
 
