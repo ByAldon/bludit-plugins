@@ -3,9 +3,9 @@
 	"email": "",
 	"website": "https://github.com/ByAldon",
 	"version": "1.0",
-	"releaseDate": "2026-01-30",
+	"releaseDate": "2024-05-22",
 	"license": "MIT",
-	"compatible": "3.10",
+	"compatible": "3.16.2",
 	"name": "Back To Top",
 	"description": "A lightweight, customizable button that allows users to smoothly scroll back to the top of the page."
 }
