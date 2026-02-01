@@ -2,7 +2,7 @@
 
 Adjust the login session duration or enforce session termination.
 
----
+<------------------->
 
 This is still a early acces plugin.<br>
 This means that this plugin still may contain bugs.<br>
