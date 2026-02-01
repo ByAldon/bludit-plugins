@@ -14,5 +14,6 @@ If you found any issues please report it on [the issues page](https://github.com
 
 ===================================================
 
-[![Build Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FByAldon%2Fbludit-plugins%2Fmain%2Fsources%2Flinks%2520v2%2Fmetadata.json&query=%24.version&label=build&color=green&style=for-the-badge)](https://github.com/ByAldon/bludit-plugins/blob/main/sources/links%20v2/metadata.json)
-[![Download](https://img.shields.io/badge/download-links%20v2-blue?style=for-the-badge)](https://github.com/ByAldon/bludit-plugins/tree/main/downloads)
+[![Download](https://img.shields.io/badge/download-links--v2-blue?style=for-the-badge)](https://github.com/ByAldon/bludit-plugins/tree/main/downloads)
+[![Build](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FByAldon%2Fbludit-plugins%2Fmain%2Fsources%2Flinks%2520v2%2Fmetadata.json&query=%24.version&label=build&color=green&style=for-the-badge)](https://github.com/ByAldon/bludit-plugins/blob/main/sources/links%20v2/metadata.json)
+[![Bludit](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FByAldon%2Fbludit-plugins%2Fmain%2Fsources%2Flinks%2520v2%2Fmetadata.json&query=%24.compatible&label=bludit&color=orange&style=for-the-badge)](https://github.com/ByAldon/bludit-plugins/blob/main/sources/links%20v2/metadata.json)
