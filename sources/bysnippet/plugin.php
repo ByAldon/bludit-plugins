@@ -6,25 +6,20 @@ class pluginBySnippet extends Plugin {
 
 	public function init()
 	{
-		// Pad naar de permanente opslag in de Bludit databases map
 		$this->storageFile = PATH_DATABASES . 'bysnippet.json';
 		$this->dbFields = array('snippets' => '[]');
 	}
 
-	// Helper functie om data te laden uit het bestand in plaats van de plugin-db
 	private function getSnippets()
 	{
 		if (file_exists($this->storageFile)) {
 			return json_decode(file_get_contents($this->storageFile), true) ?: array();
 		}
-		// Fallback naar de standaard db als het bestand nog niet bestaat
 		return json_decode($this->getValue('snippets'), true) ?: array();
 	}
 
-	// Helper functie om data permanent op te slaan
 	private function saveSnippets($snippets) {
 		file_put_contents($this->storageFile, json_encode($snippets, JSON_PRETTY_PRINT));
-		// We updaten ook de interne db voor de zekerheid
 		$this->db['snippets'] = json_encode($snippets);
 		$this->save();
 	}
@@ -32,7 +27,7 @@ class pluginBySnippet extends Plugin {
 	public function name() { return 'BySnippet'; }
 
 	public function description() {
-		return 'Beautiful link-cards with permanent storage, auto-metadata and drag-and-drop management.';
+		return 'Beautiful link-cards with permanent storage, auto-metadata, drag-and-drop and editing support.';
 	}
 
 	private function fetchMeta($url) {
@@ -61,7 +56,8 @@ class pluginBySnippet extends Plugin {
 	{
 		$snippets = $this->getSnippets();
 
-		if (!empty($_POST['genUrl'])) {
+		// Nieuwe toevoegen
+		if (!empty($_POST['genUrl']) && !isset($_POST['edit_id'])) {
 			$meta = $this->fetchMeta($_POST['genUrl']);
 			$snippets[] = array(
 				'url'      => $_POST['genUrl'],
@@ -71,11 +67,21 @@ class pluginBySnippet extends Plugin {
 			);
 		}
 
+		// Update bestaande
+		if (isset($_POST['update_snippet'])) {
+			$id = $_POST['edit_id'];
+			$snippets[$id]['title'] = $_POST['editTitle'];
+			$snippets[$id]['desc'] = $_POST['editDesc'];
+			$snippets[$id]['url'] = $_POST['editUrl'];
+		}
+
+		// Verplaatsen (Drag & Drop)
 		if (isset($_POST['move_id']) && isset($_POST['new_cat'])) {
 			$id = $_POST['move_id'];
 			$snippets[$id]['category'] = $_POST['new_cat'];
 		}
 
+		// Verwijderen
 		if (isset($_POST['delete_snippet'])) {
 			unset($snippets[$_POST['delete_snippet']]);
 			$snippets = array_values($snippets);
@@ -95,9 +101,10 @@ class pluginBySnippet extends Plugin {
 		$categories = array_unique(array_column($snippets, 'category'));
 		if (empty($categories)) { $categories = ['General']; }
 
-		$html = '<div class="alert alert-success"><strong>Persistent Storage Active:</strong> Your snippets are saved in <code>/bl-content/databases/bysnippet.json</code> and will not be deleted when deactivating the plugin.</div>';
+		$html = '<div class="alert alert-info">Manage your snippets. Use <b>Edit</b> to manually change titles or descriptions.</div>';
 		
-		$html .= '<div class="mb-4 p-3 border rounded bg-light">
+		// Toevoeg sectie
+		$html .= '<div id="add-section" class="mb-4 p-3 border rounded bg-light">
 					<h5>Add New Snippet</h5>
 					<div class="row">
 						<div class="col-md-6"><label>URL</label><input name="genUrl" type="text" class="form-control" placeholder="https://..."></div>
@@ -105,6 +112,7 @@ class pluginBySnippet extends Plugin {
 					</div>
 				  </div>';
 
+		// Tabs
 		$html .= '<nav><div class="nav nav-tabs" id="nav-tab" role="tablist">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'active' : '';
@@ -120,18 +128,28 @@ class pluginBySnippet extends Plugin {
 			foreach ($snippets as $id => $item) {
 				if ($item['category'] === $cat) {
 					$code = '[snippet url="'.$item['url'].'"]';
-					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'">';
+					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'" id="row-'.$id.'">';
 					$html .= '<td style="cursor:grab; vertical-align:middle;">☰</td>';
-					$html .= '<td><strong>'.htmlspecialchars($item['title']).'</strong><br><small class="text-muted">'.$item['url'].'</small></td>';
-					$html .= '<td style="vertical-align:middle;">
-								<div class="input-group input-group-sm" style="width:250px;">
-									<input type="text" class="form-control" value=\''.htmlspecialchars($code).'\' id="code-'.$id.'" readonly>
-									<div class="input-group-append">
-										<button class="btn btn-outline-secondary" type="button" onclick="copySnippet(\'code-'.$id.'\', this)">Copy</button>
-									</div>
-								</div>
+					$html .= '<td class="js-content-view">
+								<strong class="js-title">'.htmlspecialchars($item['title']).'</strong><br>
+								<small class="text-muted js-url">'.$item['url'].'</small><br>
+								<small class="js-desc">'.htmlspecialchars($item['desc']).'</small>
 							  </td>';
-					$html .= '<td class="text-right"><button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button></td>';
+					$html .= '<td class="js-content-edit d-none">
+								<input type="text" name="editTitle" class="form-control form-control-sm mb-1" value="'.htmlspecialchars($item['title']).'">
+								<input type="text" name="editUrl" class="form-control form-control-sm mb-1" value="'.htmlspecialchars($item['url']).'">
+								<textarea name="editDesc" class="form-control form-control-sm">'.htmlspecialchars($item['desc']).'</textarea>
+								<input type="hidden" name="edit_id" value="'.$id.'">
+								<button type="submit" name="update_snippet" class="btn btn-success btn-sm mt-1">Update</button>
+								<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="cancelEdit('.$id.')">Cancel</button>
+							  </td>';
+					$html .= '<td style="vertical-align:middle;">
+								<code>'.htmlspecialchars($code).'</code>
+							  </td>';
+					$html .= '<td class="text-right" style="vertical-align:middle;">
+								<button type="button" class="btn btn-primary btn-sm" onclick="enableEdit('.$id.')">Edit</button>
+								<button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button>
+							  </td>';
 					$html .= '</tr>';
 				}
 			}
@@ -139,13 +157,17 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div>';
 
-		$html .= '<div class="mt-5 p-3 border border-danger rounded bg-light">
-					<h5 class="text-danger">Danger Zone</h5>
-					<p class="small text-muted">This button will delete the storage file permanently.</p>
-					<button type="submit" name="nuke_all_snippets" class="btn btn-danger btn-sm" onclick="return confirm(\'This will delete EVERYTHING. Are you sure?\')">Delete ALL Content</button>
-				  </div>';
-
 		$html .= '<script>
+		function enableEdit(id) {
+			const row = document.getElementById("row-"+id);
+			row.querySelector(".js-content-view").classList.add("d-none");
+			row.querySelector(".js-content-edit").classList.remove("d-none");
+		}
+		function cancelEdit(id) {
+			const row = document.getElementById("row-"+id);
+			row.querySelector(".js-content-view").classList.remove("d-none");
+			row.querySelector(".js-content-edit").classList.add("d-none");
+		}
 		function copySnippet(id, btn) {
 			var copyText = document.getElementById(id);
 			copyText.select();
