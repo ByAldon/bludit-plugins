@@ -1,0 +1,49 @@
+.ss-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: none;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.ss-container:hover {
+    background-color: #fcfcfc;
+}
+
+.ss-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+.ss-content {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ss-title {
+    color: #1a202c !important;
+    font-size: 1.2em;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.ss-description {
+    color: #4a5568 !important;
+    font-size: 0.95em;
+    display: block;
+    line-height: 1.4;
+}
+
+.ss-url-host {
+    color: #718096 !important;
+    font-size: 0.85em;
+    display: block;
+    margin-top: 8px;
+}
