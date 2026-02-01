@@ -17,7 +17,7 @@ class pluginBySnippet extends Plugin {
 	}
 
 	public function description() {
-		return 'Automatically generates beautiful link-cards from [snippet url="..."] shortcodes with drag-and-drop category management.';
+		return 'Automatically generates beautiful link-cards from shortcodes with drag-and-drop management.';
 	}
 
 	private function fetchMeta($url) {
@@ -46,6 +46,7 @@ class pluginBySnippet extends Plugin {
 	{
 		$snippets = $this->getSnippets();
 
+		// Add snippet
 		if (!empty($_POST['genUrl'])) {
 			$meta = $this->fetchMeta($_POST['genUrl']);
 			$snippets[] = array(
@@ -56,14 +57,21 @@ class pluginBySnippet extends Plugin {
 			);
 		}
 
+		// Move category (Drag & Drop)
 		if (isset($_POST['move_id']) && isset($_POST['new_cat'])) {
 			$id = $_POST['move_id'];
 			$snippets[$id]['category'] = $_POST['new_cat'];
 		}
 
+		// Delete single
 		if (isset($_POST['delete_snippet'])) {
 			unset($snippets[$_POST['delete_snippet']]);
 			$snippets = array_values($snippets);
+		}
+
+		// Delete ALL (Danger Zone)
+		if (isset($_POST['nuke_all_snippets'])) {
+			$snippets = array();
 		}
 
 		$this->db['snippets'] = json_encode($snippets);
@@ -76,8 +84,9 @@ class pluginBySnippet extends Plugin {
 		$categories = array_unique(array_column($snippets, 'category'));
 		if (empty($categories)) { $categories = ['General']; }
 
-		$html = '<div class="alert alert-info">Drag a row and drop it on a tab to change its category. Click <b>Save</b> to confirm changes.</div>';
+		$html = '<div class="alert alert-info">Drag a row to a tab to move it. Data is kept even if the plugin is disabled.</div>';
 		
+		// Input form
 		$html .= '<div class="mb-4 p-3 border rounded bg-light">
 					<h5>Add New Snippet</h5>
 					<div class="row">
@@ -86,6 +95,7 @@ class pluginBySnippet extends Plugin {
 					</div>
 				  </div>';
 
+		// Tabs
 		$html .= '<nav><div class="nav nav-tabs" id="nav-tab" role="tablist">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'active' : '';
@@ -98,13 +108,12 @@ class pluginBySnippet extends Plugin {
 			$active = ($index === 0) ? 'show active' : '';
 			$html .= '<div class="tab-pane fade '.$active.'" id="content-'.$index.'" role="tabpanel">';
 			$html .= '<table class="table table-hover"><thead><tr><th>Drag</th><th>Preview</th><th>Shortcode</th><th>Action</th></tr></thead><tbody>';
-			
 			foreach ($snippets as $id => $item) {
 				if ($item['category'] === $cat) {
 					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'">';
-					$html .= '<td style="cursor:grab; font-size:20px;">☰</td>';
+					$html .= '<td style="cursor:grab;">☰</td>';
 					$html .= '<td><strong>'.htmlspecialchars($item['title']).'</strong><br><small>'.$item['url'].'</small></td>';
-					$html .= '<td><input type="text" class="form-control form-control-sm" value=\'[snippet url="'.$item['url'].'"]\' readonly onclick="this.select();"></td>';
+					$html .= '<td><code>[snippet url="'.$item['url'].'"]</code></td>';
 					$html .= '<td><button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button></td>';
 					$html .= '</tr>';
 				}
@@ -113,6 +122,14 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div>';
 
+		// Danger Zone
+		$html .= '<div class="mt-5 p-3 border border-danger rounded">
+					<h5 class="text-danger">Danger Zone</h5>
+					<p class="small text-muted">This will permanently delete all your snippets.</p>
+					<button type="submit" name="nuke_all_snippets" class="btn btn-outline-danger btn-sm" onclick="return confirm(\'WARNING: This will delete ALL snippets. Are you absolutely sure?\')">Delete ALL Content</button>
+				  </div>';
+
+		// Drag & Drop Script
 		$html .= '<script>
 		document.querySelectorAll(".js-draggable").forEach(row => {
 			row.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", row.dataset.id); });
@@ -124,13 +141,10 @@ class pluginBySnippet extends Plugin {
 				e.preventDefault();
 				const id = e.dataTransfer.getData("text/plain");
 				const newCat = tab.dataset.cat;
-				const inputId = document.createElement("input");
-				inputId.type = "hidden"; inputId.name = "move_id"; inputId.value = id;
-				const inputCat = document.createElement("input");
-				inputCat.type = "hidden"; inputCat.name = "new_cat"; inputCat.value = newCat;
-				const form = document.getElementById("jsform");
-				form.appendChild(inputId); form.appendChild(inputCat);
-				form.submit();
+				const f = document.getElementById("jsform");
+				const i1 = document.createElement("input"); i1.type="hidden"; i1.name="move_id"; i1.value=id;
+				const i2 = document.createElement("input"); i2.type="hidden"; i2.name="new_cat"; i2.value=newCat;
+				f.appendChild(i1); f.appendChild(i2); f.submit();
 			});
 		});
 		</script>';
