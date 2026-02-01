@@ -4,8 +4,6 @@ A customizable button to smoothly scroll back to the top of the page.
 
 ===================================================
 
-Compatible: 3.10
-
 If you found any issues please report it on [the issues page](https://github.com/ByAldon/bludit-plugins/issues).
 
 ===================================================
