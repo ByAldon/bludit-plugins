@@ -12,7 +12,13 @@ class pluginBySnippet extends Plugin {
 		return json_decode($this->getValue('snippets'), true) ?: array();
 	}
 
-	public function name() { return 'BySnippet'; }
+	public function name() { 
+		return 'BySnippet'; 
+	}
+
+	public function description() {
+		return 'Automatically generates beautiful link-cards from [snippet url="..."] shortcodes with drag-and-drop category management.';
+	}
 
 	private function fetchMeta($url) {
 		$data = array('title' => $url, 'desc' => '');
@@ -40,7 +46,6 @@ class pluginBySnippet extends Plugin {
 	{
 		$snippets = $this->getSnippets();
 
-		// Handle New Snippet
 		if (!empty($_POST['genUrl'])) {
 			$meta = $this->fetchMeta($_POST['genUrl']);
 			$snippets[] = array(
@@ -51,13 +56,11 @@ class pluginBySnippet extends Plugin {
 			);
 		}
 
-		// Handle AJAX category move
 		if (isset($_POST['move_id']) && isset($_POST['new_cat'])) {
 			$id = $_POST['move_id'];
 			$snippets[$id]['category'] = $_POST['new_cat'];
 		}
 
-		// Handle Delete
 		if (isset($_POST['delete_snippet'])) {
 			unset($snippets[$_POST['delete_snippet']]);
 			$snippets = array_values($snippets);
@@ -75,7 +78,6 @@ class pluginBySnippet extends Plugin {
 
 		$html = '<div class="alert alert-info">Drag a row and drop it on a tab to change its category. Click <b>Save</b> to confirm changes.</div>';
 		
-		// Add form
 		$html .= '<div class="mb-4 p-3 border rounded bg-light">
 					<h5>Add New Snippet</h5>
 					<div class="row">
@@ -84,7 +86,6 @@ class pluginBySnippet extends Plugin {
 					</div>
 				  </div>';
 
-		// Tabs Navigation
 		$html .= '<nav><div class="nav nav-tabs" id="nav-tab" role="tablist">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'active' : '';
@@ -92,7 +93,6 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div></nav>';
 
-		// Tabs Content
 		$html .= '<div class="tab-content p-3 border border-top-0" id="nav-tabContent">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'show active' : '';
@@ -113,7 +113,6 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div>';
 
-		// Drag & Drop Script for Admin
 		$html .= '<script>
 		document.querySelectorAll(".js-draggable").forEach(row => {
 			row.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", row.dataset.id); });
