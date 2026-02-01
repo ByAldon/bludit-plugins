@@ -6,4 +6,4 @@ This is the mainpage for the bludit plugins i made.
 -  [Back To Top](https://github.com/ByAldon/bludit-plugins/tree/main/sources/back-to-top)
 -  [BySnippet](https://github.com/ByAldon/bludit-plugins/tree/main/sources/bysnippet)
 -  [Links V2](https://github.com/ByAldon/bludit-plugins/tree/main/sources/links%20v2)
--  [Session Manager (Early Acces)](https://github.com/ByAldon/bludit-plugins/tree/main/sources/session-manager)
+-  [Session Manager](https://github.com/ByAldon/bludit-plugins/tree/main/sources/session-manager) (Early Acces)
