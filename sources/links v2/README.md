@@ -1,6 +1,6 @@
 # Links V2
 
-This plugin for Bludit is based on the default [Links](https://github.com/bludit/bludit/tree/v3.0/bl-plugins/links) plugin.
+This plugin for Bludit is based on the default [Links](https://github.com/bludit/bludit/tree/v3.0/bl-plugins/links) plugin.<br>
 This plugin will nest in the sidebar of your bludit website.
 
 **Changes are made**
