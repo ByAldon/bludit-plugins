@@ -27,7 +27,7 @@ class pluginBySnippet extends Plugin {
 	public function name() { return 'BySnippet'; }
 
 	public function description() {
-		return 'Beautiful link-cards with permanent storage, auto-metadata, category management and editing support.';
+		return 'Beautiful link-cards with permanent storage, auto-metadata, category management and easy copy-to-clipboard.';
 	}
 
 	private function fetchMeta($url) {
@@ -121,7 +121,6 @@ class pluginBySnippet extends Plugin {
 		sort($categories);
 		if (empty($categories)) { $categories = ['General']; }
 
-		// 1. Add Section
 		$html = '<div class="mb-4 p-3 border rounded bg-light">
 					<h5>Add New Snippet</h5>
 					<div class="row">
@@ -136,7 +135,6 @@ class pluginBySnippet extends Plugin {
 					</div>
 				  </div>';
 
-		// 2. Tabs Navigation
 		$html .= '<nav><div class="nav nav-tabs" id="nav-tab" role="tablist">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'active' : '';
@@ -144,7 +142,6 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div></nav>';
 
-		// 3. Tabs Content
 		$html .= '<div class="tab-content p-3 border border-top-0 bg-white" id="nav-tabContent">';
 		foreach ($categories as $index => $cat) {
 			$active = ($index === 0) ? 'show active' : '';
@@ -152,21 +149,29 @@ class pluginBySnippet extends Plugin {
 			$html .= '<table class="table table-hover align-middle"><tbody>';
 			foreach ($snippets as $id => $item) {
 				if ($item['category'] === $cat) {
+					$code = '[snippet url="'.$item['url'].'"]';
 					$html .= '<tr draggable="true" class="js-draggable" data-id="'.$id.'" id="row-'.$id.'">
-								<td style="cursor:grab; width:30px;">☰</td>
+								<td style="cursor:grab; width:30px; vertical-align:middle;">☰</td>
 								<td class="js-content-view">
 									<strong>'.htmlspecialchars($item['title']).'</strong><br><small class="text-muted">'.$item['url'].'</small>
 								</td>
 								<td class="js-content-edit d-none">
-									<input type="text" name="editTitle" class="form-control mb-1" value="".htmlspecialchars($item["title"])."">
-									<input type="text" name="editUrl" class="form-control mb-1" value="'.$item["url"].'">
-									<textarea name="editDesc" class="form-control">'.htmlspecialchars($item["desc"]).'</textarea>
+									<input type="text" name="editTitle" class="form-control mb-1" value="'.htmlspecialchars($item['title']).'">
+									<input type="text" name="editUrl" class="form-control mb-1" value="'.$item['url'].'">
+									<textarea name="editDesc" class="form-control">'.htmlspecialchars($item['desc']).'</textarea>
 									<input type="hidden" name="edit_id" value="'.$id.'">
 									<button type="submit" name="update_snippet" class="btn btn-success btn-sm mt-1">Update</button>
 									<button type="button" class="btn btn-secondary btn-sm mt-1" onclick="cancelEdit('.$id.')">Cancel</button>
 								</td>
-								<td style="width:200px;"><code>[snippet url="'.$item['url'].'"]</code></td>
-								<td class="text-right">
+								<td style="width:280px; vertical-align:middle;">
+									<div class="input-group input-group-sm">
+										<input type="text" class="form-control" value="'.htmlspecialchars($code).'" id="code-'.$id.'" readonly>
+										<div class="input-group-append">
+											<button class="btn btn-outline-primary" type="button" onclick="copyToClipboard(\'code-'.$id.'\', this)">Copy</button>
+										</div>
+									</div>
+								</td>
+								<td class="text-right" style="vertical-align:middle;">
 									<button type="button" class="btn btn-primary btn-sm" onclick="enableEdit('.$id.')">Edit</button>
 									<button type="submit" name="delete_snippet" value="'.$id.'" class="btn btn-danger btn-sm">Delete</button>
 								</td>
@@ -177,8 +182,7 @@ class pluginBySnippet extends Plugin {
 		}
 		$html .= '</div>';
 
-		// 4. Category Management
-		$html .= '<div class="mt-4 p-3 border rounded">
+		$html .= '<div class="mt-4 p-3 border rounded bg-light">
 					<h5>Manage Categories</h5>
 					<div class="row mt-2">
 						<div class="col-md-6 border-right">
@@ -191,19 +195,28 @@ class pluginBySnippet extends Plugin {
 								<div class="input-group-append"><button type="submit" name="rename_cat" class="btn btn-warning">Rename</button></div>
 							</div>
 						</div>
-						<div class="col-md-6">
-							<label>Delete Entire Category</label>
-							<div class="input-group">
-								<select name="cat_to_delete" class="form-control">';
-								foreach($categories as $cat) { $html .= '<option value="'.$cat.'">'.$cat.'</option>'; }
-		$html .= '				</select>
-								<div class="input-group-append"><button type="submit" name="delete_cat" class="btn btn-danger" onclick="return confirm(\'Delete category AND all snippets inside?\')">Delete</button></div>
-							</div>
+						<div class="col-md-6 text-right">
+							<label class="d-block">Danger Zone</label>
+							<button type="submit" name="nuke_all_snippets" class="btn btn-outline-danger btn-sm" onclick="return confirm(\'Delete EVERYTHING?\')">Delete ALL Snippets</button>
 						</div>
 					</div>
 				  </div>';
 
 		$html .= '<script>
+		function copyToClipboard(inputId, btn) {
+			var copyText = document.getElementById(inputId);
+			copyText.select();
+			copyText.setSelectionRange(0, 99999);
+			document.execCommand("copy");
+			
+			var originalText = btn.innerHTML;
+			btn.innerHTML = "Copied!";
+			btn.classList.replace("btn-outline-primary", "btn-success");
+			setTimeout(function() {
+				btn.innerHTML = originalText;
+				btn.classList.replace("btn-success", "btn-outline-primary");
+			}, 2000);
+		}
 		function enableEdit(id) {
 			const row = document.getElementById("row-"+id);
 			row.querySelector(".js-content-view").classList.add("d-none");
@@ -218,7 +231,7 @@ class pluginBySnippet extends Plugin {
 			row.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", row.dataset.id); });
 		});
 		document.querySelectorAll(".js-tab-drop").forEach(tab => {
-			tab.addEventListener("dragover", e => { e.preventDefault(); tab.style.background = "#e9ecef"; });
+			tab.addEventListener("dragover", e => { e.preventDefault(); tab.style.background = "#f0f0f0"; });
 			tab.addEventListener("dragleave", e => { tab.style.background = ""; });
 			tab.addEventListener("drop", e => {
 				e.preventDefault();
